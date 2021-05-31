@@ -10,6 +10,7 @@ const firebaseConfig = {
 };
 
 firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 const ctx = document.getElementById("myChart").getContext("2d");
 let myChart;
 function getChart(dataChart) {
@@ -54,9 +55,10 @@ const Ready = () => {
 insertCalories.addEventListener("submit", (e) => {
   e.preventDefault();
   Ready();
-  firebase
-    .database()
-    .ref("pv/" + day)
+  db.collection("12345")
+    .doc("CalorieTracker")
+    .collection("calorieList")
+    .doc(day)
     .set({
       Day: day,
       Calories: calories,
@@ -74,36 +76,20 @@ function getData() {
   const xLabels = [];
   const yLabels = [];
   return new Promise((resolve, reject) => {
-    firebase
-      .database()
-      .ref("pv/")
-      .on("value", (snapshot) => {
-        let obj = snapshot.val();
-        // for (let x of Object.keys(obj)) {
-        //   let y = obj[x].Calories;
-        //   xLabels.push(x);
-        //   yLabels.push(y);
-        //   console.log(xLabels.length);
-        //   console.log(yLabels.length);
-        //   // console.log(x);
-        //   // console.log(y);
-        // }
+    db.collection("12345")
+      .doc("CalorieTracker")
+      .collection("calorieList")
+      .get()
+      .then((snapshot) => {
+        let obj = snapshot.docs;
+        // console.log(obj);
         obj.forEach((x) => {
-          xLabels.push(x.Day);
-          yLabels.push(x.Calories);
+          xLabels.push(x.data().Day);
+          yLabels.push(x.data().Calories);
+          console.log(x.data().Calories, x.data().Day);
         });
         resolve({ xLabels, yLabels });
       });
   });
-
-  // alert("Read Complete");
 }
-
-// function callMe() {
-//   setInterval(() => {
-//     getData().then(getChart);
-//     myChart.destroy();
-//   }, 2000);
-// }
-// getData().then(getChart);
 window.onload = getData().then(getChart);
