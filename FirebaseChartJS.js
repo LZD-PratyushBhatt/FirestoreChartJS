@@ -46,8 +46,9 @@ function getChart(dataChart) {
 
 //FIREBASE STUFF
 const insertCalories = document.querySelector("#submit-calories");
+let day, calories;
 const Ready = () => {
-  day = insertCalories["day"].value;
+  day = parseInt(insertCalories["day"].value);
   calories = insertCalories["calories"].value;
 };
 
@@ -58,7 +59,7 @@ insertCalories.addEventListener("submit", (e) => {
   db.collection("12345")
     .doc("CalorieTracker")
     .collection("calorieList")
-    .doc(day)
+    .doc(day + "")
     .set({
       Day: day,
       Calories: calories,
@@ -75,6 +76,7 @@ function getData() {
   // You can get deepe r fieldss and deeper nodes by getting deeper into snapshot object
   const xLabels = [];
   const yLabels = [];
+  const masterXY = [];
   return new Promise((resolve, reject) => {
     db.collection("12345")
       .doc("CalorieTracker")
@@ -82,11 +84,19 @@ function getData() {
       .get()
       .then((snapshot) => {
         let obj = snapshot.docs;
-        // console.log(obj);
         obj.forEach((x) => {
-          xLabels.push(x.data().Day);
-          yLabels.push(x.data().Calories);
-          console.log(x.data().Calories, x.data().Day);
+          masterXY.push([parseInt(x.data().Day), x.data().Calories]);
+        });
+        // Sort cause after the 10th day, it starts messing up,
+        // so parseInt and sort.
+        masterXY.sort((a, b) => {
+          // console.log("first=", a, " Second=", b);
+          return a[0] - b[0];
+        });
+        console.log(masterXY);
+        masterXY.forEach((ele) => {
+          xLabels.push(ele[0]);
+          yLabels.push(ele[1]);
         });
         resolve({ xLabels, yLabels });
       });
